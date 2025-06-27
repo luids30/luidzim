@@ -3,76 +3,81 @@
 import { useState, useEffect } from "react"
 
 interface GeolocationData {
-  city: string | null
-  country: string | null
-  region: string | null
-  loading: boolean
-  error: string | null
+  city?: string
+  country?: string
+  latitude?: number
+  longitude?: number
 }
 
 export function useGeolocation() {
-  const [data, setData] = useState<GeolocationData>({
-    city: null,
-    country: null,
-    region: null,
-    loading: true,
-    error: null,
-  })
+  const [location, setLocation] = useState<GeolocationData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Check if we already have cached data in sessionStorage
-    const cachedData = sessionStorage.getItem("geolocation_data")
-    if (cachedData) {
+    const getLocation = async () => {
       try {
-        const parsed = JSON.parse(cachedData)
-        setData({
-          ...parsed,
-          loading: false,
-          error: null,
+        // Essayer d'obtenir la position géographique
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords
+
+              try {
+                // Utiliser une API de géocodage inverse pour obtenir la ville
+                const response = await fetch(
+                  `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=fr`,
+                )
+                const data = await response.json()
+
+                setLocation({
+                  city: data.city || data.locality,
+                  country: data.countryName,
+                  latitude,
+                  longitude,
+                })
+              } catch (apiError) {
+                // Si l'API échoue, utiliser une ville par défaut
+                setLocation({
+                  city: "Paris",
+                  country: "France",
+                  latitude,
+                  longitude,
+                })
+              }
+              setLoading(false)
+            },
+            (error) => {
+              console.error("Erreur de géolocalisation:", error)
+              // Utiliser une localisation par défaut
+              setLocation({
+                city: "Paris",
+                country: "France",
+              })
+              setError("Impossible d'obtenir la localisation")
+              setLoading(false)
+            },
+          )
+        } else {
+          setError("Géolocalisation non supportée")
+          setLocation({
+            city: "Paris",
+            country: "France",
+          })
+          setLoading(false)
+        }
+      } catch (err) {
+        setError("Erreur lors de la récupération de la localisation")
+        setLocation({
+          city: "Paris",
+          country: "France",
         })
-        return
-      } catch (error) {
-        console.error("Error parsing cached geolocation data:", error)
+        setLoading(false)
       }
     }
 
-    // Fetch geolocation data from ipinfo.io
-    const fetchGeolocation = async () => {
-      try {
-        const response = await fetch("https://ipinfo.io/json?token=9da2ab93deea98")
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const result = await response.json()
-
-        const locationData = {
-          city: result.city || null,
-          country: result.country || null,
-          region: result.region || null,
-        }
-
-        // Cache the result in sessionStorage
-        sessionStorage.setItem("geolocation_data", JSON.stringify(locationData))
-
-        setData({
-          ...locationData,
-          loading: false,
-          error: null,
-        })
-      } catch (error) {
-        console.error("Error fetching geolocation:", error)
-        setData((prev) => ({
-          ...prev,
-          loading: false,
-          error: error instanceof Error ? error.message : "Failed to fetch location",
-        }))
-      }
-    }
-
-    fetchGeolocation()
+    getLocation()
   }, [])
 
-  return data
+  return { location, city: location?.city, loading, error }
 }

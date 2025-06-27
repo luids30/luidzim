@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
+  title: "Application v0",
+  description: "Créé avec v0",
   generator: "v0.dev",
 }
 
@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <head>
         {/* Google Tag Manager */}
         <script
@@ -23,7 +23,7 @@ export default function RootLayout({
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-5SB2JPL9');`,
+})(window,document,'script','dataLayer','GTM-MLFMTLJZ');`,
           }}
         />
         {/* End Google Tag Manager */}
@@ -32,7 +32,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-5SB2JPL9"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-MLFMTLJZ"
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}
